@@ -1,0 +1,21 @@
+# Verify current configuration
+grep CONFIG_TASK_DELAY_ACCT /boot/config-$(uname -r)
+
+# Install development tools
+sudo dnf group install "Development Tools"
+sudo dnf install ncurses-devel bison flex elfutils-libelf-devel openssl-devel bc rpm-build
+
+# Download and configure kernel
+cd /usr/src/kernels/$(uname -r)/
+make menuconfig
+
+# Build and install new kernel
+make -j$(nproc) && make modules_install && make install
+
+# Update bootloader and reboot
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+sudo reboot
+
+# Enable kernel.task_delayacct
+echo "kernel.task_delayacct = 1" | sudo tee /etc/sysctl.d/99-task_delayacct.conf
+sudo sysctl -p /etc/sysctl.d/99-task_delayacct.conf
