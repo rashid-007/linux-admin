@@ -1,0 +1,34 @@
+# configuration of nfs server for sharing files between the machines:
+# install nfs-utils using dnf install nfs-utils -y
+# run systemctl start nfs-server.servive to start the nfs server
+# run systemctl enable nfs-server.servive to enable the service at boot time.
+# run systemctl status nfs-server.service to check the status of the nfs-server
+# now run rpcinfo -p | grep nfs to check the nfs services.
+# run mkdir -p /srv/nfs_share/docs to make a directory
+# run chown -R nobody: /srv/nfs_share/docs to change the ownership of the directory and the sub-directories.
+# run chmod -R 777 /srv/nfs_share/docs to change the permissions.
+# run systemctl restart nfs-utils.service to restart the service.
+# now open the exports file by running sudo nano /etc/exports and add /srv/nfs_share/docs localhost/24(rw,sync,no_all_squash,root_squash) to the file and then save it
+  and exit.
+# now run  exportfs -arv to check the file information(use the ip address of the client machine instead of using the localhost).
+# to include more details, run exportfs -s
+
+Configuring firewall: Run the below commands on the nfs-server
+firewall-cmd --permanent --add-service=nfs
+firewall-cmd --permanent --add-service=rpc-bind
+firewall-cmd --permanent --add-service=mountd
+firewall-cmd --reload
+
+nfs-client side configuration:
+commands:
+dnf install nfs-utils nfs4-acl-tools -y
+showmount -e nfs-server-ip 
+mkdir -p /tmp/NFS
+mount -t nfs nfs-server-ip:/srv/nfs_share/docs /tmp/NFS
+to check the mount information run mount | grep nfs
+to make the mount permament go into /etc/fstab file and add  nfs-server-ip:/srv/nfs_share/docs /tmp/NFS  nfs defaults 0 0 save and close.
+to chcek if it is mounted, run umount /tmp/NFS to unmount and remount using mount -a command and run df -kh to see if it is mounted.
+
+
+
+
